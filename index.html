@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>For Abdullah — Upscend</title>
+<style>
+  :root{
+    --ink:#0b0b0c;
+    --paper:#ffffff;
+    --hair:#e6e6e6;
+    --mute:#0b0b0c;              /* keep one ink; "muted" = opacity, not a new color */
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow:hidden;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .stage{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:max(28px,env(safe-area-inset-top)) 26px max(40px,env(safe-area-inset-bottom));
+    cursor:pointer;
+  }
+
+  /* one beat visible at a time */
+  .beat{
+    position:absolute;
+    width:100%;max-width:600px;
+    display:none;
+    padding-bottom:8px;
+  }
+  .beat.on{display:block}
+  .beat .rise{
+    opacity:0;
+    transform:translateY(14px);
+    animation:rise .72s var(--ease) forwards;
+  }
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* type scale — hierarchy by size/weight, single ink */
+  .eyebrow{
+    font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;
+    font-weight:600;opacity:.42;margin-bottom:26px;
+  }
+  h1{
+    font-size:clamp(30px,7.4vw,46px);
+    line-height:1.12;font-weight:600;letter-spacing:-.02em;
+    text-wrap:balance;
+  }
+  h1.big{font-size:clamp(34px,8.6vw,54px)}
+  .lede{
+    font-size:clamp(19px,4.6vw,23px);
+    line-height:1.5;font-weight:400;opacity:.62;
+    margin-top:22px;text-wrap:pretty;max-width:34ch;
+  }
+  .say{                              /* their own words, quoted in their voice */
+    font-size:clamp(26px,6.6vw,40px);
+    line-height:1.18;font-weight:600;letter-spacing:-.02em;
+    text-wrap:balance;
+  }
+  .say .sub{
+    display:block;font-size:clamp(16px,4vw,20px);
+    font-weight:400;opacity:.5;margin-top:14px;letter-spacing:0;
+  }
+  .read{
+    font-size:clamp(19px,4.6vw,23px);line-height:1.5;
+    font-weight:400;margin-top:26px;text-wrap:pretty;max-width:36ch;
+  }
+  .tag{
+    display:inline-block;font-size:11.5px;letter-spacing:.15em;
+    text-transform:uppercase;font-weight:600;opacity:.4;margin-bottom:14px;
+  }
+  .turn{
+    font-size:clamp(20px,4.8vw,25px);line-height:1.42;font-weight:500;
+    margin-top:28px;padding-top:26px;border-top:1px solid var(--hair);
+    text-wrap:pretty;max-width:34ch;letter-spacing:-.01em;
+  }
+  .struck{
+    font-size:clamp(20px,4.8vw,25px);line-height:1.4;font-weight:500;
+    opacity:.34;position:relative;display:inline-block;max-width:32ch;
+  }
+  .struck::after{
+    content:"";position:absolute;left:0;top:52%;height:1.5px;background:var(--ink);
+    width:0;animation:strike .5s var(--ease) .5s forwards;
+  }
+  @keyframes strike{to{width:100%}}
+  .against{
+    font-size:16px;line-height:1.5;opacity:.5;margin-top:26px;
+    font-style:italic;max-width:34ch;
+  }
+  .ask{
+    font-size:clamp(22px,5.4vw,30px);line-height:1.32;font-weight:600;
+    letter-spacing:-.02em;margin-top:22px;text-wrap:balance;max-width:22ch;
+  }
+  .reply{
+    font-size:clamp(17px,4.2vw,20px);line-height:1.5;margin-top:28px;
+    padding-top:24px;border-top:1px solid var(--hair);opacity:.72;max-width:34ch;
+  }
+  .sign{margin-top:30px;font-size:15px;opacity:.4;letter-spacing:.02em}
+
+  .list{margin-top:22px;max-width:36ch}
+  .list .row{
+    font-size:clamp(17px,4.2vw,20px);line-height:1.35;padding:11px 0;
+    border-bottom:1px solid var(--hair);opacity:.82;
+  }
+  .list .row:first-child{border-top:1px solid var(--hair)}
+
+  /* chrome: progress + hint */
+  .chrome{
+    position:fixed;left:0;right:0;bottom:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px max(20px,env(safe-area-inset-bottom));
+    pointer-events:none;
+  }
+  .dots{display:flex;gap:7px}
+  .dots i{
+    width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.16;
+    transition:opacity .4s var(--ease),transform .4s var(--ease);
+  }
+  .dots i.act{opacity:.9;transform:scale(1.15)}
+  .hint{
+    font-size:12.5px;letter-spacing:.04em;opacity:.34;font-weight:500;
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.34}50%{opacity:.12}}
+  .back{
+    position:fixed;top:0;left:0;
+    padding:max(22px,env(safe-area-inset-top)) 22px 16px 24px;
+    font-size:22px;line-height:1;opacity:0;pointer-events:none;
+    transition:opacity .3s var(--ease);cursor:pointer;font-weight:300;
+  }
+  .back.show{opacity:.32;pointer-events:auto}
+  .back.show:hover{opacity:.7}
+
+  @media (prefers-reduced-motion:reduce){
+    .beat .rise{animation:none;opacity:1;transform:none}
+    .struck::after{animation:none;width:100%}
+    .hint{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="back" id="back" aria-label="Back">&larr;</div>
+
+<div class="stage" id="stage">
+
+  <!-- 1 · anticipation -->
+  <section class="beat">
+    <div class="rise">
+      <div class="eyebrow">For Abdullah &middot; Upscend</div>
+      <h1 class="big">I read your post for a sales consultant.</h1>
+      <p class="lede">Then I put it away, and spent an hour with Upscend itself.</p>
+    </div>
+  </section>
+
+  <!-- 2 · what Upscend really is -->
+  <section class="beat">
+    <div class="rise">
+      <div class="tag">In your words</div>
+      <p class="say">&ldquo;The LMS that guarantees learning.&rdquo;
+        <span class="sub">Stop measuring completion rates. Start measuring mastery.</span>
+      </p>
+      <p class="read">That isn&rsquo;t something a company signs up for on a Tuesday. It&rsquo;s an outcome they have to be sold on. Enterprise, not self&#8209;serve.</p>
+    </div>
+  </section>
+
+  <!-- 3 · Matar / the insight -->
+  <section class="beat">
+    <div class="rise">
+      <div class="tag">What you built</div>
+      <h1>You gave every learner a guide.</h1>
+      <p class="read">Matar walks each employee through the parts they&rsquo;d otherwise quit on. You engineered guidance into the product so no one is left confused.</p>
+      <p class="turn">But the person deciding whether to buy Upscend gets no guide at all. The hardest thing to learn here isn&rsquo;t the course. It&rsquo;s whether to trust Upscend.</p>
+    </div>
+  </section>
+
+  <!-- 4 · the correction / pattern -->
+  <section class="beat">
+    <div class="rise">
+      <div class="tag">What I first thought</div>
+      <p class="struck">&ldquo;They need a better sales consultant.&rdquo;</p>
+      <div class="list">
+        <div class="row">A closer, for one round of deals.</div>
+        <div class="row">A demo team, brought in for another.</div>
+        <div class="row">This consultant, now.</div>
+        <div class="row">A marketing role, open right beside it.</div>
+      </div>
+      <p class="turn">Capable people, each holding one corner. What I don&rsquo;t see is anyone who owns the whole path &mdash; from who to target, to the message, to the booked demo.</p>
+    </div>
+  </section>
+
+  <!-- 5 · the read / why me -->
+  <section class="beat">
+    <div class="rise">
+      <div class="tag">So</div>
+      <h1>I didn&rsquo;t apply to your post.</h1>
+      <p class="read">I looked to see whether we could own that path for you &mdash; the engine that turns strangers into qualified demos and hands them to your closers. Not another corner of it. The whole thing.</p>
+      <p class="against">If you already have someone who owns that, ignore me. I&rsquo;d rather be useless to you than pretend.</p>
+    </div>
+  </section>
+
+  <!-- 6 · the blocker + reply -->
+  <section class="beat">
+    <div class="rise">
+      <div class="tag">One question</div>
+      <p class="ask">Who owns turning &ldquo;the LMS that guarantees learning&rdquo; into booked demos today &mdash; one person, or a stack of freelancers?</p>
+      <p class="reply">Reply right here on Upwork with your answer. That&rsquo;s all I need to know whether we should keep going.</p>
+      <div class="sign">&mdash; Mohamed</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <div class="dots" id="dots"></div>
+  <div class="hint" id="hint">tap to continue</div>
+</div>
+
+<script>
+(function(){
+  var beats = Array.prototype.slice.call(document.querySelectorAll('.beat'));
+  var dotsWrap = document.getElementById('dots');
+  var hint = document.getElementById('hint');
+  var back = document.getElementById('back');
+  var stage = document.getElementById('stage');
+  var i = 0;
+
+  beats.forEach(function(){
+    var d = document.createElement('i');
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function reanimate(el){
+    var r = el.querySelector('.rise');
+    if(!r) return;
+    r.style.animation='none';
+    /* force reflow so the animation replays each time the beat is shown */
+    void r.offsetWidth;
+    r.style.animation='';
+  }
+
+  function show(n){
+    n = Math.max(0, Math.min(beats.length-1, n));
+    beats[i].classList.remove('on');
+    i = n;
+    beats[i].classList.add('on');
+    reanimate(beats[i]);
+    dots.forEach(function(d,k){ d.classList.toggle('act', k===i); });
+    back.classList.toggle('show', i>0);
+    if(i === beats.length-1){ hint.textContent='reply on Upwork'; }
+    else { hint.textContent='tap to continue'; }
+  }
+
+  function next(){ if(i < beats.length-1) show(i+1); }
+  function prev(){ if(i > 0) show(i-1); }
+
+  stage.addEventListener('click', function(e){
+    if(e.clientX < window.innerWidth*0.22){ prev(); } else { next(); }
+  });
+  back.addEventListener('click', function(e){ e.stopPropagation(); prev(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){ e.preventDefault(); next(); }
+    if(e.key==='ArrowLeft'){ prev(); }
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>
