@@ -7,276 +7,428 @@
 <title>For Abdullah — Upscend</title>
 <style>
   :root{
-    --ink:#0b0b0c;
-    --paper:#ffffff;
-    --hair:#e6e6e6;
-    --mute:#0b0b0c;              /* keep one ink; "muted" = opacity, not a new color */
-    --ease:cubic-bezier(.22,.61,.36,1);
+    --ink:#0e1216;
+    --ink2:#141a20;
+    --paper:#ece7dd;
+    --dim:#8d93a0;
+    --faint:#4a515c;
+    --amber:#e8a94e;
+    --amber-soft:rgba(232,169,78,.14);
+    --serif:ui-serif,"New York",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
   body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
     overflow:hidden;
-    user-select:none;
     -webkit-tap-highlight-color:transparent;
-  }
-
-  .stage{
-    position:fixed;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    padding:max(28px,env(safe-area-inset-top)) 26px max(40px,env(safe-area-inset-bottom));
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
     cursor:pointer;
   }
-
-  /* one beat visible at a time */
-  .beat{
-    position:absolute;
-    width:100%;max-width:600px;
-    display:none;
-    padding-bottom:8px;
+  /* subtle vignette so it feels like a stage, not a page */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 38%, rgba(255,255,255,.035), transparent 60%),
+               radial-gradient(140% 100% at 50% 110%, rgba(0,0,0,.5), transparent 55%);
   }
-  .beat.on{display:block}
-  .beat .rise{
-    opacity:0;
-    transform:translateY(14px);
-    animation:rise .72s var(--ease) forwards;
-  }
-  @keyframes rise{to{opacity:1;transform:none}}
 
-  /* type scale — hierarchy by size/weight, single ink */
+  #bar{
+    position:fixed;top:0;left:0;height:2px;width:0%;
+    background:var(--amber);opacity:.85;z-index:50;
+    transition:width .6s cubic-bezier(.4,0,.2,1);
+  }
+
+  #stage{position:fixed;inset:0}
+  .scene{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+    padding:calc(env(safe-area-inset-top) + 28px) 28px calc(env(safe-area-inset-bottom) + 96px);
+    opacity:0;transform:translateY(16px);
+    visibility:hidden;pointer-events:none;
+    transition:opacity .7s ease,transform .7s ease,visibility 0s linear .7s;
+  }
+  .scene.on{opacity:1;transform:none;visibility:visible;transition:opacity .7s ease .25s,transform .7s ease .25s}
+  .scene.past{opacity:0;transform:translateY(-18px)}
+  .inner{width:100%;max-width:560px;margin:0 auto}
+
   .eyebrow{
-    font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;
-    font-weight:600;opacity:.42;margin-bottom:26px;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:22px;
   }
+  .eyebrow b{color:var(--amber);font-weight:600}
   h1{
-    font-size:clamp(30px,7.4vw,46px);
-    line-height:1.12;font-weight:600;letter-spacing:-.02em;
-    text-wrap:balance;
+    font-family:var(--serif);font-weight:500;
+    font-size:clamp(27px,7.2vw,42px);line-height:1.22;
+    letter-spacing:.005em;text-wrap:balance;
   }
-  h1.big{font-size:clamp(34px,8.6vw,54px)}
-  .lede{
-    font-size:clamp(19px,4.6vw,23px);
-    line-height:1.5;font-weight:400;opacity:.62;
-    margin-top:22px;text-wrap:pretty;max-width:34ch;
-  }
-  .say{                              /* their own words, quoted in their voice */
-    font-size:clamp(26px,6.6vw,40px);
-    line-height:1.18;font-weight:600;letter-spacing:-.02em;
-    text-wrap:balance;
-  }
-  .say .sub{
-    display:block;font-size:clamp(16px,4vw,20px);
-    font-weight:400;opacity:.5;margin-top:14px;letter-spacing:0;
-  }
-  .read{
-    font-size:clamp(19px,4.6vw,23px);line-height:1.5;
-    font-weight:400;margin-top:26px;text-wrap:pretty;max-width:36ch;
-  }
-  .tag{
-    display:inline-block;font-size:11.5px;letter-spacing:.15em;
-    text-transform:uppercase;font-weight:600;opacity:.4;margin-bottom:14px;
-  }
-  .turn{
-    font-size:clamp(20px,4.8vw,25px);line-height:1.42;font-weight:500;
-    margin-top:28px;padding-top:26px;border-top:1px solid var(--hair);
-    text-wrap:pretty;max-width:34ch;letter-spacing:-.01em;
-  }
-  .struck{
-    font-size:clamp(20px,4.8vw,25px);line-height:1.4;font-weight:500;
-    opacity:.34;position:relative;display:inline-block;max-width:32ch;
-  }
-  .struck::after{
-    content:"";position:absolute;left:0;top:52%;height:1.5px;background:var(--ink);
-    width:0;animation:strike .5s var(--ease) .5s forwards;
-  }
-  @keyframes strike{to{width:100%}}
-  .against{
-    font-size:16px;line-height:1.5;opacity:.5;margin-top:26px;
-    font-style:italic;max-width:34ch;
-  }
-  .ask{
-    font-size:clamp(22px,5.4vw,30px);line-height:1.32;font-weight:600;
-    letter-spacing:-.02em;margin-top:22px;text-wrap:balance;max-width:22ch;
-  }
-  .reply{
-    font-size:clamp(17px,4.2vw,20px);line-height:1.5;margin-top:28px;
-    padding-top:24px;border-top:1px solid var(--hair);opacity:.72;max-width:34ch;
-  }
-  .sign{margin-top:30px;font-size:15px;opacity:.4;letter-spacing:.02em}
+  .cap{font-size:14px;line-height:1.55;color:var(--dim)}
 
-  .list{margin-top:22px;max-width:36ch}
-  .list .row{
-    font-size:clamp(17px,4.2vw,20px);line-height:1.35;padding:11px 0;
-    border-bottom:1px solid var(--hair);opacity:.82;
+  /* pulsing tap affordance */
+  #hint{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 26px);
+    transform:translateX(-50%);z-index:40;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    transition:opacity .5s ease;
   }
-  .list .row:first-child{border-top:1px solid var(--hair)}
+  #hint .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--amber);position:relative;
+  }
+  #hint .dot::after{
+    content:"";position:absolute;inset:-9px;border-radius:50%;
+    border:1.5px solid var(--amber);
+    animation:ping 1.9s cubic-bezier(.2,.6,.3,1) infinite;
+  }
+  @keyframes ping{
+    0%{transform:scale(.4);opacity:.9}
+    70%,100%{transform:scale(1.7);opacity:0}
+  }
+  #hint .lbl{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+  #hint.hide{opacity:0;pointer-events:none}
 
-  /* chrome: progress + hint */
-  .chrome{
-    position:fixed;left:0;right:0;bottom:0;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:0 26px max(20px,env(safe-area-inset-bottom));
-    pointer-events:none;
+  /* ---------- scene 1 : the hook ---------- */
+  #s1 .l2{
+    font-family:var(--serif);font-weight:500;
+    font-size:clamp(27px,7.2vw,42px);line-height:1.22;
+    color:var(--amber);
+    opacity:0;transform:translateY(14px);
+    transition:opacity .7s ease,transform .7s ease;
+    margin-top:14px;
   }
-  .dots{display:flex;gap:7px}
-  .dots i{
-    width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.16;
-    transition:opacity .4s var(--ease),transform .4s var(--ease);
+  #s1 h1{transition:opacity .7s ease,transform .7s ease}
+  #s1.step1 h1{opacity:.28;transform:scale(.99)}
+  #s1.step1 .l2{opacity:1;transform:none}
+
+  /* ---------- scene 2 : their own words ---------- */
+  #s2 .w{
+    display:inline-block;opacity:0;transform:translateY(16px);
+    transition:opacity .6s ease,transform .6s ease;
   }
-  .dots i.act{opacity:.9;transform:scale(1.15)}
-  .hint{
-    font-size:12.5px;letter-spacing:.04em;opacity:.34;font-weight:500;
-    animation:pulse 2.6s ease-in-out infinite;
+  #s2.on .w1{transition-delay:.35s}
+  #s2.on .w2{transition-delay:.47s}
+  #s2.on .w3{transition-delay:.59s}
+  #s2.on .w4{transition-delay:.74s}
+  #s2.on .w5{transition-delay:.89s}
+  #s2.on .w{opacity:1;transform:none}
+  #gw{position:relative;display:inline-block}
+  #gw svg{
+    position:absolute;left:-9%;top:-36%;width:118%;height:172%;
+    overflow:visible;pointer-events:none;
   }
-  @keyframes pulse{0%,100%{opacity:.34}50%{opacity:.12}}
-  .back{
-    position:fixed;top:0;left:0;
-    padding:max(22px,env(safe-area-inset-top)) 22px 16px 24px;
-    font-size:22px;line-height:1;opacity:0;pointer-events:none;
-    transition:opacity .3s var(--ease);cursor:pointer;font-weight:300;
+  #circPath{
+    fill:none;stroke:var(--amber);stroke-width:2.1;
+    stroke-linecap:round;vector-effect:non-scaling-stroke;
+    stroke-dasharray:700;stroke-dashoffset:700;
+    transition:stroke-dashoffset 1.1s cubic-bezier(.5,0,.3,1) .1s;
   }
-  .back.show{opacity:.32;pointer-events:auto}
-  .back.show:hover{opacity:.7}
+  #s2.step1 #circPath{stroke-dashoffset:0}
+  #s2 .sub{
+    margin-top:26px;font-family:var(--serif);font-style:italic;
+    font-size:clamp(16px,4.4vw,20px);color:var(--dim);line-height:1.5;
+    opacity:0;transform:translateY(10px);transition:opacity .7s ease .55s,transform .7s ease .55s;
+  }
+  #s2 .foot{
+    margin-top:18px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--faint);
+    opacity:0;transition:opacity .7s ease 1s;
+  }
+  #s2.step1 .sub{opacity:1;transform:none}
+  #s2.step1 .foot{opacity:1}
+
+  /* ---------- scene 3 : Matar, then the turn ---------- */
+  #chipMatar{
+    display:inline-flex;flex-direction:column;gap:3px;
+    padding:13px 26px;border-radius:16px;
+    border:1px solid rgba(232,169,78,.45);
+    background:var(--amber-soft);
+    box-shadow:0 0 34px rgba(232,169,78,.16);
+    margin-bottom:30px;
+    animation:breathe 3.2s ease-in-out infinite;
+    transition:opacity .8s ease,filter .8s ease;
+  }
+  @keyframes breathe{
+    0%,100%{box-shadow:0 0 22px rgba(232,169,78,.12)}
+    50%{box-shadow:0 0 44px rgba(232,169,78,.28)}
+  }
+  #chipMatar .n{font-size:15px;letter-spacing:.14em;color:var(--amber);font-weight:600}
+  #chipMatar .d{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  #s3 h1{transition:opacity .6s ease,transform .6s ease}
+  #s3 .turn{
+    position:absolute;left:28px;right:28px;top:50%;transform:translateY(calc(-50% + 18px));
+    opacity:0;transition:opacity .8s ease .5s,transform .8s ease .5s;
+  }
+  #s3 .turn h1{color:var(--paper)}
+  #s3 .turn .cap{
+    margin-top:22px;max-width:340px;margin-left:auto;margin-right:auto;
+  }
+  #s3.step1 .m1{opacity:0;transform:translateY(-14px)}
+  #s3.step1 #chipMatar{opacity:.14;filter:saturate(.2);animation:none}
+  #s3.step1 .turn{opacity:1;transform:translateY(-50%)}
+
+  /* ---------- scene 4 : the fragments ---------- */
+  #s4 .board{
+    position:relative;
+    height:min(44dvh,380px);aspect-ratio:3/4;
+    margin:6px auto 0;
+  }
+  #s4 .board svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .stub{
+    stroke:var(--faint);stroke-width:1.6;stroke-dasharray:5 7;stroke-linecap:round;fill:none;
+    opacity:0;transition:opacity .9s ease 1s;
+  }
+  #s4.on .stub{opacity:.8}
+  #s4.step2 .stub{opacity:0}
+  .frag{
+    position:absolute;transform:translate(-50%,-50%) translateY(12px);
+    background:var(--ink2);border:1px solid #2a323c;border-radius:14px;
+    padding:9px 14px;white-space:nowrap;
+    opacity:0;transition:opacity .6s ease,transform .6s ease;
+  }
+  .frag .n{display:block;font-size:13px;font-weight:600;letter-spacing:.02em}
+  .frag .d{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+  #s4.on .frag{opacity:1;transform:translate(-50%,-50%)}
+  #s4.on .f1{transition-delay:.25s}
+  #s4.on .f2{transition-delay:.45s}
+  #s4.on .f3{transition-delay:.65s}
+  #s4.on .f4{transition-delay:.85s}
+  #s4.step2 .frag{opacity:.18}
+  #s4.step2 .f3{opacity:.34}
+
+  /* the buyer-path rail */
+  #rail{width:min(84vw,340px);margin:10px auto 0;display:block;overflow:visible}
+  #rail text{
+    font-family:var(--sans);font-size:11px;fill:var(--dim);letter-spacing:.04em;
+  }
+  #rail .stagelbl,#rail .seg{opacity:0;transition:opacity .7s ease}
+  #s4.step1 .stagelbl{opacity:1}
+  #s4.step1 .seg{opacity:1}
+  #s4.step2 .seg{opacity:0}
+  #rail .seg{stroke:var(--faint);stroke-width:1.6;stroke-dasharray:4 6;stroke-linecap:round}
+  #ownerPath{
+    stroke:var(--amber);stroke-width:2.4;stroke-linecap:round;fill:none;
+    stroke-dasharray:280;stroke-dashoffset:280;
+    filter:drop-shadow(0 0 6px rgba(232,169,78,.5));
+    transition:stroke-dashoffset 1.3s cubic-bezier(.55,0,.25,1) .15s;
+  }
+  #s4.step2 #ownerPath{stroke-dashoffset:0}
+  #ownerChip{opacity:0;transform:translateY(8px);transition:opacity .6s ease 1.2s,transform .6s ease 1.2s}
+  #s4.step2 #ownerChip{opacity:1;transform:none}
+  #ownerChip rect{fill:var(--amber)}
+  #ownerChip text{fill:#171208;font-size:10px;font-weight:700;letter-spacing:.18em}
+  #s4.step2 .stagelbl{opacity:1;fill:var(--paper)}
+
+  #s4 .caps{position:relative;margin-top:22px;min-height:3.4em}
+  #s4 .caps .cap{
+    position:absolute;left:0;right:0;top:0;
+    opacity:0;transform:translateY(8px);transition:opacity .6s ease,transform .6s ease;
+  }
+  #s4.on:not(.step1):not(.step2) .capA{opacity:1;transform:none;transition-delay:1.2s}
+  #s4.step1:not(.step2) .capB{opacity:1;transform:none;transition-delay:.5s}
+  #s4.step2 .capC{opacity:1;transform:none;transition-delay:1.3s}
+  #s4 .capB b,#s4 .capC b{color:var(--paper);font-weight:600}
+
+  /* ---------- scene 6 : the question ---------- */
+  #s6 h1{font-size:clamp(24px,6.4vw,36px);line-height:1.32}
+  #s6 h1 em{font-style:italic;color:var(--amber)}
+  #s6 .qmark{
+    font-family:var(--serif);font-size:52px;color:var(--faint);
+    line-height:1;margin-bottom:26px;
+  }
+
+  /* ---------- scene 7 : close ---------- */
+  #s7 h1{font-size:clamp(24px,6.2vw,34px)}
+  #s7 .sig{
+    margin-top:30px;font-family:var(--serif);font-style:italic;
+    font-size:22px;color:var(--amber);
+  }
+  #s7 .again{
+    margin-top:56px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--faint);background:none;border:none;font-family:var(--sans);
+    cursor:pointer;padding:10px;
+  }
+
+  @media (min-width:700px){
+    .frag{padding:10px 16px}
+    .frag .n{font-size:14px}
+    #s4 .board{height:min(50dvh,420px)}
+  }
 
   @media (prefers-reduced-motion:reduce){
-    .beat .rise{animation:none;opacity:1;transform:none}
-    .struck::after{animation:none;width:100%}
-    .hint{animation:none}
+    *,*::before,*::after{
+      transition-duration:1ms !important;
+      transition-delay:0ms !important;
+      animation:none !important;
+    }
+    #hint .dot::after{display:none}
   }
 </style>
 </head>
 <body>
+<div id="bar"></div>
 
-<div class="back" id="back" aria-label="Back">&larr;</div>
+<div id="stage">
 
-<div class="stage" id="stage">
-
-  <!-- 1 · anticipation -->
-  <section class="beat">
-    <div class="rise">
-      <div class="eyebrow">For Abdullah &middot; Upscend</div>
-      <h1 class="big">I read your post for a sales consultant.</h1>
-      <p class="lede">Then I put it away, and spent an hour with Upscend itself.</p>
+  <!-- 1 · hook -->
+  <section class="scene" id="s1">
+    <div class="inner">
+      <div class="eyebrow">For <b>Abdullah</b> · Upscend</div>
+      <h1>Your job post asks for a sales consultant.</h1>
+      <div class="l2">Your homepage asks for more.</div>
     </div>
   </section>
 
-  <!-- 2 · what Upscend really is -->
-  <section class="beat">
-    <div class="rise">
-      <div class="tag">In your words</div>
-      <p class="say">&ldquo;The LMS that guarantees learning.&rdquo;
-        <span class="sub">Stop measuring completion rates. Start measuring mastery.</span>
-      </p>
-      <p class="read">That isn&rsquo;t something a company signs up for on a Tuesday. It&rsquo;s an outcome they have to be sold on. Enterprise, not self&#8209;serve.</p>
+  <!-- 2 · their own words -->
+  <section class="scene" id="s2">
+    <div class="inner">
+      <div class="eyebrow">Your homepage · word for word</div>
+      <h1>
+        <span class="w w1">&ldquo;The</span>
+        <span class="w w2">LMS</span>
+        <span class="w w3">that</span>
+        <span class="w w4" id="gw">guarantees<svg viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path id="circPath" d="M28 46 C24 18 78 6 108 8 C152 11 190 19 187 41 C184 64 138 75 94 72 C48 69 14 62 20 42 C24 28 46 18 74 14"/></svg></span>
+        <span class="w w5">learning.&rdquo;</span>
+      </h1>
+      <div class="sub">&ldquo;Stop measuring completion rates. Start measuring mastery.&rdquo;</div>
+      <div class="foot">Mastery, not completion</div>
     </div>
   </section>
 
-  <!-- 3 · Matar / the insight -->
-  <section class="beat">
-    <div class="rise">
-      <div class="tag">What you built</div>
-      <h1>You gave every learner a guide.</h1>
-      <p class="read">Matar walks each employee through the parts they&rsquo;d otherwise quit on. You engineered guidance into the product so no one is left confused.</p>
-      <p class="turn">But the person deciding whether to buy Upscend gets no guide at all. The hardest thing to learn here isn&rsquo;t the course. It&rsquo;s whether to trust Upscend.</p>
-    </div>
-  </section>
-
-  <!-- 4 · the correction / pattern -->
-  <section class="beat">
-    <div class="rise">
-      <div class="tag">What I first thought</div>
-      <p class="struck">&ldquo;They need a better sales consultant.&rdquo;</p>
-      <div class="list">
-        <div class="row">A closer, for one round of deals.</div>
-        <div class="row">A demo team, brought in for another.</div>
-        <div class="row">This consultant, now.</div>
-        <div class="row">A marketing role, open right beside it.</div>
+  <!-- 3 · Matar, then the turn -->
+  <section class="scene" id="s3">
+    <div class="inner m1">
+      <div class="eyebrow">Inside your product</div>
+      <div id="chipMatar">
+        <span class="n">MATAR</span>
+        <span class="d">AI concierge · every learner</span>
       </div>
-      <p class="turn">Capable people, each holding one corner. What I don&rsquo;t see is anyone who owns the whole path &mdash; from who to target, to the message, to the booked demo.</p>
+      <h1>You built a guide for every learner who hits a hard concept.</h1>
+    </div>
+    <div class="turn">
+      <h1>So who guides your buyer?</h1>
+      <p class="cap">The hardest thing to learn here isn&rsquo;t a course. It&rsquo;s whether to trust Upscend.</p>
     </div>
   </section>
 
-  <!-- 5 · the read / why me -->
-  <section class="beat">
-    <div class="rise">
-      <div class="tag">So</div>
-      <h1>I didn&rsquo;t apply to your post.</h1>
-      <p class="read">I looked to see whether we could own that path for you &mdash; the engine that turns strangers into qualified demos and hands them to your closers. Not another corner of it. The whole thing.</p>
-      <p class="against">If you already have someone who owns that, ignore me. I&rsquo;d rather be useless to you than pretend.</p>
+  <!-- 4 · fragments → one line -->
+  <section class="scene" id="s4">
+    <div class="inner">
+      <div class="eyebrow">Your Upwork hires</div>
+      <div class="board">
+        <svg viewBox="0 0 300 400" aria-hidden="true">
+          <path class="stub" d="M100 72 C120 78 138 84 152 90"/>
+          <path class="stub" d="M198 128 C184 138 172 148 160 160"/>
+          <path class="stub" d="M118 208 C136 216 152 224 166 232"/>
+        </svg>
+        <div class="frag f1" style="left:24%;top:15%"><span class="n">A closer</span><span class="d">one round of deals</span></div>
+        <div class="frag f2" style="left:73%;top:27%"><span class="n">Demo team</span><span class="d">another round</span></div>
+        <div class="frag f3" style="left:28%;top:49%"><span class="n">Sales consultant</span><span class="d">this post</span></div>
+        <div class="frag f4" style="left:72%;top:65%"><span class="n">Marketing role</span><span class="d">open right beside it</span></div>
+      </div>
+      <svg id="rail" viewBox="0 0 300 74" aria-hidden="true">
+        <path class="seg" d="M12 36 H78"/>
+        <path class="seg" d="M118 36 H182"/>
+        <path class="seg" d="M222 36 H288"/>
+        <path id="ownerPath" d="M12 36 H288"/>
+        <text class="stagelbl" x="45" y="62" text-anchor="middle">who to target</text>
+        <text class="stagelbl" x="150" y="62" text-anchor="middle">the message</text>
+        <text class="stagelbl" x="255" y="62" text-anchor="middle">the booked demo</text>
+        <g id="ownerChip">
+          <rect x="112" y="2" width="76" height="21" rx="10.5"/>
+          <text x="150" y="16.5" text-anchor="middle">ONE OWNER</text>
+        </g>
+      </svg>
+      <div class="caps">
+        <p class="cap capA">Capable people. One corner each.</p>
+        <p class="cap capB"><b>Nobody owns the whole path.</b></p>
+        <p class="cap capC"><b>Strangers in. Qualified demos out.</b> Handed to your closers.</p>
+      </div>
     </div>
   </section>
 
-  <!-- 6 · the blocker + reply -->
-  <section class="beat">
-    <div class="rise">
-      <div class="tag">One question</div>
-      <p class="ask">Who owns turning &ldquo;the LMS that guarantees learning&rdquo; into booked demos today &mdash; one person, or a stack of freelancers?</p>
-      <p class="reply">Reply right here on Upwork with your answer. That&rsquo;s all I need to know whether we should keep going.</p>
-      <div class="sign">&mdash; Mohamed</div>
+  <!-- 6 · the question -->
+  <section class="scene" id="s6">
+    <div class="inner">
+      <div class="qmark">?</div>
+      <h1>Who owns turning <em>&ldquo;the LMS that guarantees learning&rdquo;</em> into booked demos today &mdash; one person, or a stack of freelancers?</h1>
+    </div>
+  </section>
+
+  <!-- 7 · close -->
+  <section class="scene" id="s7">
+    <div class="inner">
+      <h1>Reply right here on Upwork.</h1>
+      <div class="sig">&mdash; Mohamed</div>
+      <button class="again" id="again" type="button">Watch again</button>
     </div>
   </section>
 
 </div>
 
-<div class="chrome">
-  <div class="dots" id="dots"></div>
-  <div class="hint" id="hint">tap to continue</div>
+<div id="hint" aria-hidden="true">
+  <div class="dot"></div>
+  <div class="lbl">tap</div>
 </div>
 
 <script>
 (function(){
-  var beats = Array.prototype.slice.call(document.querySelectorAll('.beat'));
-  var dotsWrap = document.getElementById('dots');
-  var hint = document.getElementById('hint');
-  var back = document.getElementById('back');
-  var stage = document.getElementById('stage');
-  var i = 0;
+  "use strict";
+  var cur=null;
+  function $(id){return document.getElementById(id)}
+  function go(id){
+    if(cur){cur.classList.remove("on");cur.classList.add("past")}
+    var s=$(id);s.classList.remove("past");
+    // force reflow so the entrance transition always plays
+    void s.offsetWidth;
+    s.classList.add("on");cur=s;
+  }
+  function step(id,c){$(id).classList.add(c)}
 
-  beats.forEach(function(){
-    var d = document.createElement('i');
-    dotsWrap.appendChild(d);
-  });
-  var dots = Array.prototype.slice.call(dotsWrap.children);
-
-  function reanimate(el){
-    var r = el.querySelector('.rise');
-    if(!r) return;
-    r.style.animation='none';
-    /* force reflow so the animation replays each time the beat is shown */
-    void r.offsetWidth;
-    r.style.animation='';
+  var steps=[
+    function(){go("s1")},
+    function(){step("s1","step1")},
+    function(){go("s2")},
+    function(){step("s2","step1")},
+    function(){go("s3")},
+    function(){step("s3","step1")},
+    function(){go("s4")},
+    function(){step("s4","step1")},
+    function(){step("s4","step2")},
+    function(){go("s6")},
+    function(){go("s7");$("hint").classList.add("hide")}
+  ];
+  var i=-1;
+  function advance(){
+    if(i>=steps.length-1)return;
+    i++;steps[i]();
+    $("bar").style.width=((i)/(steps.length-1)*100)+"%";
+  }
+  function reset(){
+    ["s1","s2","s3","s4"].forEach(function(id){
+      var s=$(id);s.classList.remove("step1","step2");
+    });
+    document.querySelectorAll(".scene").forEach(function(s){
+      s.classList.remove("on","past");
+    });
+    cur=null;i=-1;
+    $("hint").classList.remove("hide");
+    $("bar").style.width="0%";
+    setTimeout(advance,150);
   }
 
-  function show(n){
-    n = Math.max(0, Math.min(beats.length-1, n));
-    beats[i].classList.remove('on');
-    i = n;
-    beats[i].classList.add('on');
-    reanimate(beats[i]);
-    dots.forEach(function(d,k){ d.classList.toggle('act', k===i); });
-    back.classList.toggle('show', i>0);
-    if(i === beats.length-1){ hint.textContent='reply on Upwork'; }
-    else { hint.textContent='tap to continue'; }
-  }
-
-  function next(){ if(i < beats.length-1) show(i+1); }
-  function prev(){ if(i > 0) show(i-1); }
-
-  stage.addEventListener('click', function(e){
-    if(e.clientX < window.innerWidth*0.22){ prev(); } else { next(); }
+  document.body.addEventListener("click",function(e){
+    if(e.target&&e.target.id==="again"){reset();return}
+    advance();
   });
-  back.addEventListener('click', function(e){ e.stopPropagation(); prev(); });
-  document.addEventListener('keydown', function(e){
-    if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){ e.preventDefault(); next(); }
-    if(e.key==='ArrowLeft'){ prev(); }
+  document.addEventListener("keydown",function(e){
+    if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){e.preventDefault();advance()}
   });
 
-  show(0);
+  // first beat plays on load
+  setTimeout(advance,250);
 })();
 </script>
 </body>
