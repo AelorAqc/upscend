@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Mockup — for Abdullah</title>
+<style>
+  :root{
+    --paper:#f7f4ee;
+    --card:#fffdf9;
+    --ink:#1a1714;
+    --soft:#6f675b;
+    --faint:#a49b8c;
+    --line:#e4ddd0;
+    --accent:#bf5a2a;
+    --accent-soft:rgba(191,90,42,.12);
+    --serif:ui-serif,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono","Menlo",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:var(--sans);-webkit-font-smoothing:antialiased;
+    line-height:1.5;padding:0 20px 90px;
+  }
+
+  /* ---- page header ---- */
+  header{max-width:640px;margin:0 auto;padding:52px 4px 20px}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+  header h1{font-family:var(--serif);font-weight:500;font-size:clamp(26px,6vw,36px);line-height:1.18;margin:16px 0 14px;letter-spacing:-.01em}
+  header p{color:var(--soft);font-size:15px;max-width:52ch}
+  header .rule{height:1px;background:var(--line);margin:30px 0 4px}
+
+  /* ---- storyboard row ---- */
+  .row{max-width:640px;margin:0 auto;padding:34px 0 6px}
+  .meta{display:flex;align-items:baseline;gap:12px;margin:0 4px 16px}
+  .meta .num{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.05em}
+  .meta .what{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+
+  /* ---- phone frame ---- */
+  .phone{
+    width:100%;max-width:340px;margin:0 auto;
+    aspect-ratio:9/18.5;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:34px;
+    box-shadow:0 1px 0 #fff inset,0 18px 44px -20px rgba(40,30,16,.30);
+    position:relative;overflow:hidden;
+    padding:38px 26px 30px;
+    display:flex;flex-direction:column;
+  }
+  .phone::before{ /* speaker notch hint */
+    content:"";position:absolute;top:15px;left:50%;transform:translateX(-50%);
+    width:42px;height:4px;border-radius:2px;background:var(--line);
+  }
+  .cap{
+    max-width:340px;margin:14px auto 0;
+    font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--faint);
+    text-align:center;letter-spacing:.02em;
+  }
+  .cap b{color:var(--accent);font-weight:400}
+
+  /* reveal on scroll */
+  .anim{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
+  .in .anim{opacity:1;transform:none}
+  .in .d1{transition-delay:.05s}.in .d2{transition-delay:.18s}.in .d3{transition-delay:.31s}
+  .in .d4{transition-delay:.44s}.in .d5{transition-delay:.57s}.in .d6{transition-delay:.70s}
+
+  /* ---- in-screen type ---- */
+  .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+  .say{font-family:var(--serif);font-weight:500;font-size:24px;line-height:1.24;letter-spacing:-.01em}
+  .say.sm{font-size:20px}
+  .note{font-size:13px;color:var(--soft);line-height:1.5}
+  .mid{margin-top:auto;margin-bottom:auto}
+  .src{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+  /* frame 1 */
+  .cursor{display:inline-block;width:9px;height:1.1em;background:var(--accent);vertical-align:-2px;margin-left:3px;animation:blink 1.1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* frame 2 exhibit */
+  .exhibit{border:1px solid var(--line);border-radius:14px;padding:20px 18px;background:#fbf8f2}
+  .circle-wrap{position:relative;display:inline}
+  .circle-wrap svg{position:absolute;left:-10%;top:-40%;width:120%;height:180%;overflow:visible;pointer-events:none}
+  .circle-wrap path{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;
+    stroke-dasharray:640;stroke-dashoffset:640;transition:stroke-dashoffset 1.1s cubic-bezier(.5,0,.3,1) .4s}
+  .in .circle-wrap path{stroke-dashoffset:0}
+
+  /* frame 3 + 4 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{font-size:12.5px;font-weight:500;padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:#fbf8f2;white-space:nowrap}
+  .chip small{display:block;font-size:9.5px;color:var(--faint);font-weight:400;margin-top:1px;letter-spacing:.02em}
+
+  /* frame 4 : reaching lines / empty hub */
+  .hub{position:relative;height:150px;margin:6px 0}
+  .hub svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .hub .reach{stroke:var(--faint);stroke-width:1.4;stroke-dasharray:4 6;fill:none;opacity:.7}
+  .hub .empty{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 5;opacity:.85;
+    transform-box:fill-box;transform-origin:center;animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+  .hub .qm{font-family:var(--serif);font-size:22px;fill:var(--accent)}
+
+  /* frame 5 : threaded path */
+  .thread{position:relative;height:96px;margin:8px 0}
+  .thread svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .thread .own{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;
+    stroke-dasharray:300;stroke-dashoffset:300;filter:drop-shadow(0 0 5px rgba(191,90,42,.4));
+    transition:stroke-dashoffset 1.3s cubic-bezier(.55,0,.25,1) .3s}
+  .in .thread .own{stroke-dashoffset:0}
+  .thread text{font-family:var(--mono);font-size:8.5px;fill:var(--soft);letter-spacing:.04em}
+
+  /* frame 6 : questions */
+  .q{display:flex;gap:11px;padding:14px 0;border-top:1px solid var(--line)}
+  .q .n{font-family:var(--mono);font-size:12px;color:var(--accent);flex:none}
+  .q p{font-size:15px;line-height:1.4}
+  .cta{margin-top:auto;padding-top:18px}
+  .cta .big{font-family:var(--serif);font-size:20px}
+  .cta .sig{font-family:var(--serif);font-style:italic;color:var(--accent);margin-top:10px;font-size:16px}
+
+  footer{max-width:640px;margin:60px auto 0;padding-top:28px;border-top:1px solid var(--line);color:var(--soft);font-size:14px}
+  footer b{color:var(--ink)}
+
+  @media (prefers-reduced-motion:reduce){
+    .anim{opacity:1;transform:none}
+    .circle-wrap path,.thread .own{stroke-dashoffset:0}
+    .hub .empty,.cursor{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kick">Mockup · v3 · not the live thing</div>
+  <h1>Six screens. First person. Only facts.</h1>
+  <p>In the real one they tap through and each screen moves. Here it's a storyboard — scroll it, and point at what's wrong: the look, the words, or the order. The palette is a direction, not a decision.</p>
+  <div class="rule"></div>
+</header>
+
+<!-- 1 -->
+<section class="row">
+  <div class="meta"><span class="num">01</span><span class="what">the hook · homework, not a pitch</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">Case · Upscend</div>
+    <div class="mid">
+      <p class="say anim d2">Abdullah &mdash; I didn&rsquo;t write you a proposal.</p>
+      <p class="say anim d3" style="margin-top:14px;color:var(--accent)">I studied how Upscend sells first.<span class="cursor"></span></p>
+    </div>
+  </div>
+  <p class="cap">line one settles, then line two <b>types itself in</b> with a cursor</p>
+</section>
+
+<!-- 2 -->
+<section class="row">
+  <div class="meta"><span class="num">02</span><span class="what">their promise · fact</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">Your homepage, word for word</div>
+    <div class="mid">
+      <div class="exhibit anim d2">
+        <p class="say sm">&ldquo;The LMS that
+          <span class="circle-wrap">guarantees<svg viewBox="0 0 200 80" preserveAspectRatio="none"><path d="M26 44 C22 16 78 6 110 8 C156 12 192 20 188 42 C184 66 136 74 92 71 C46 68 12 60 18 40"/></svg></span>
+          learning.&rdquo;</p>
+      </div>
+      <p class="note anim d4" style="margin-top:18px">A guarantee is a bold promise. It&rsquo;s also a considered purchase &mdash; nobody buys &ldquo;guaranteed learning&rdquo; on impulse.</p>
+    </div>
+    <div class="src anim d5">source · upscend.com</div>
+  </div>
+  <p class="cap">headline sits, then an ink circle <b>draws around &ldquo;guarantees&rdquo;</b></p>
+</section>
+
+<!-- 3 -->
+<section class="row">
+  <div class="meta"><span class="num">03</span><span class="what">what I found · the real roles</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">Who you&rsquo;ve hired</div>
+    <div class="mid">
+      <div class="chips">
+        <span class="chip anim d1">A closer<small>one round of deals</small></span>
+        <span class="chip anim d2">Demo team<small>another round</small></span>
+        <span class="chip anim d3">Email personalization<small>outreach</small></span>
+        <span class="chip anim d4">Audience research<small>who to target</small></span>
+        <span class="chip anim d5">Marketing consultant<small>open right now</small></span>
+        <span class="chip anim d6">Sales consultant<small>this post</small></span>
+      </div>
+      <p class="note anim d6" style="margin-top:20px">Six roles. All one machine: turning a stranger into a booked, qualified demo.</p>
+    </div>
+  </div>
+  <p class="cap">six chips <b>drop in one by one</b>, like evidence hitting a table</p>
+</section>
+
+<!-- 4 -->
+<section class="row">
+  <div class="meta"><span class="num">04</span><span class="what">the pattern · my read, invited to be wrong</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">What I think I&rsquo;m seeing</div>
+    <div class="mid">
+      <div class="hub anim d2">
+        <svg viewBox="0 0 300 150" aria-hidden="true">
+          <path class="reach" d="M40 26 C90 60 120 66 146 70"/>
+          <path class="reach" d="M262 24 C210 58 182 66 156 70"/>
+          <path class="reach" d="M30 128 C88 96 120 84 146 78"/>
+          <path class="reach" d="M270 128 C212 96 182 84 156 78"/>
+          <circle class="empty" cx="150" cy="74" r="24"/>
+          <text class="qm" x="150" y="82" text-anchor="middle">?</text>
+        </svg>
+      </div>
+      <p class="say sm anim d4">Every piece is hired separately. No one owns the number.</p>
+      <p class="note anim d5" style="margin-top:14px">Tell me I&rsquo;m wrong &mdash; I&rsquo;d rather be corrected than polite.</p>
+    </div>
+  </div>
+  <p class="cap">the lines <b>reach for a center that isn&rsquo;t there</b>; an empty circle pulses</p>
+</section>
+
+<!-- 5 -->
+<section class="row">
+  <div class="meta"><span class="num">05</span><span class="what">the gap I&rsquo;d own · one beat, your outcome</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">Where I&rsquo;d come in</div>
+    <div class="mid">
+      <div class="thread anim d2">
+        <svg viewBox="0 0 300 96" aria-hidden="true">
+          <path class="own" d="M18 48 H282"/>
+          <circle cx="18" cy="48" r="4" fill="#bf5a2a"/><circle cx="150" cy="48" r="4" fill="#bf5a2a"/><circle cx="282" cy="48" r="4" fill="#bf5a2a"/>
+          <text x="18" y="72" text-anchor="start">who to target</text>
+          <text x="150" y="72" text-anchor="middle">the message</text>
+          <text x="282" y="72" text-anchor="end">the booked demo</text>
+        </svg>
+      </div>
+      <p class="say sm anim d4">Not another piece. The whole path &mdash; handed to your closers as booked demos.</p>
+    </div>
+  </div>
+  <p class="cap">one clean line <b>threads all three stages into a single owned path</b></p>
+</section>
+
+<!-- 6 -->
+<section class="row">
+  <div class="meta"><span class="num">06</span><span class="what">the ask · questions from the findings</span></div>
+  <div class="phone">
+    <div class="lbl anim d1">Two questions decide if we talk</div>
+    <div style="margin-top:18px">
+      <div class="q anim d2"><span class="n">1</span><p>Who owns that number today &mdash; one person, or the six?</p></div>
+      <div class="q anim d3"><span class="n">2</span><p>Once a demo is booked, who closes &mdash; and is that where it actually stalls?</p></div>
+    </div>
+    <div class="cta anim d5">
+      <p class="big">Reply right here on Upwork.</p>
+      <p class="sig">&mdash; Mohamed</p>
+    </div>
+  </div>
+  <p class="cap">questions reveal <b>one at a time</b>; no button, no link &mdash; the reply is the Upwork thread</p>
+</section>
+
+<footer>
+  <p>This replaces the wall of text, not the proposal. <b>React to three things separately:</b> the look (palette, type, feel), the words (does any line sound off or like a stranger selling?), and the order (right story, right sequence?). Point, and I&rsquo;ll change exactly that.</p>
+</footer>
+
+<script>
+(function(){
+  var rows=document.querySelectorAll(".row");
+  if(!("IntersectionObserver" in window)){rows.forEach(function(r){r.classList.add("in")});return;}
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);} });
+  },{threshold:.35});
+  rows.forEach(function(r){io.observe(r)});
+})();
+</script>
+</body>
+</html>
