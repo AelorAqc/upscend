@@ -2,493 +2,669 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Case · Upscend</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Upscend</title>
 <style>
   :root{
-    --paper:#f5f3ed;
-    --paper-deep:#ece9e0;
-    --ink:#1b1916;
-    --ink-soft:#57524a;
-    --muted:#7d776c;
-    --accent:#2c4a73;
-    --accent-soft:rgba(44,74,115,.55);
-    --hairline:rgba(27,25,22,.16);
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, Helvetica, Arial, sans-serif;
+    --ink: #f4f4f2;
+    --dim: rgba(244,244,242,0.62);
+    --faint: rgba(244,244,242,0.38);
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{height:100%;}
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ height:100%; }
   body{
-    background:var(--paper);
+    background:#000;
     color:var(--ink);
-    font-family:var(--sans);
+    font-family:var(--serif);
     overflow:hidden;
     -webkit-font-smoothing:antialiased;
     -webkit-tap-highlight-color:transparent;
     user-select:none;
     -webkit-user-select:none;
+    cursor:default;
   }
 
-  /* ---------- ambient depth ---------- */
-  .ambient{position:fixed;inset:-30%;pointer-events:none;z-index:0;}
-  .ambient .glow{position:absolute;border-radius:50%;filter:blur(70px);will-change:transform;}
-  .glow.a{
-    width:75vmax;height:75vmax;left:-15vmax;top:-20vmax;
-    background:radial-gradient(circle at 50% 50%, rgba(44,74,115,.10), rgba(44,74,115,0) 65%);
-    animation:driftA 46s ease-in-out infinite alternate;
-  }
-  .glow.b{
-    width:70vmax;height:70vmax;right:-20vmax;bottom:-22vmax;
-    background:radial-gradient(circle at 50% 50%, rgba(158,128,74,.10), rgba(158,128,74,0) 65%);
-    animation:driftB 54s ease-in-out infinite alternate;
-  }
-  @keyframes driftA{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(9vmax,6vmax,0) scale(1.12);}}
-  @keyframes driftB{from{transform:translate3d(0,0,0) scale(1.08);}to{transform:translate3d(-8vmax,-5vmax,0) scale(1);}}
-  .vignette{
-    position:fixed;inset:0;pointer-events:none;z-index:1;
-    background:radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 55%, rgba(27,25,22,.07) 100%);
+  #stage{
+    position:fixed; inset:0;
+    overflow:hidden;
+    background:#000;
+    transition:opacity .28s ease;
   }
 
-  /* ---------- progress ---------- */
-  .progress{
-    position:fixed;z-index:40;
-    top:calc(env(safe-area-inset-top, 0px) + 14px);
-    left:calc(env(safe-area-inset-left, 0px) + 20px);
-    right:calc(env(safe-area-inset-right, 0px) + 20px);
-    display:flex;gap:5px;
+  /* ambient drifting luminance */
+  #ambient{
+    position:absolute; top:-40%; left:-40%;
+    width:180%; height:180%;
+    background:radial-gradient(ellipse 42% 34% at 50% 46%, rgba(255,255,255,0.045), rgba(255,255,255,0.0) 70%);
+    animation:drift 26s ease-in-out infinite alternate;
+    pointer-events:none;
+    will-change:transform;
   }
-  .seg{flex:1;height:2px;background:rgba(27,25,22,.12);border-radius:1px;overflow:hidden;}
-  .seg i{
-    display:block;height:100%;width:100%;background:rgba(27,25,22,.52);
-    transform:scaleX(0);transform-origin:left center;border-radius:1px;
+  @keyframes drift{
+    0%  { transform:translate3d(-4%, -3%, 0) scale(1); }
+    50% { transform:translate3d( 3%,  2%, 0) scale(1.08); }
+    100%{ transform:translate3d(-2%,  4%, 0) scale(1.02); }
+  }
+  /* vignette */
+  #vignette{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse 120% 90% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+    pointer-events:none; z-index:5;
   }
 
-  /* ---------- stage / beats ---------- */
-  .stage{position:fixed;inset:0;z-index:10;}
-  .beat{
-    position:absolute;inset:0;
-    display:flex;flex-direction:column;justify-content:center;align-items:center;
-    padding:calc(env(safe-area-inset-top,0px) + 52px) calc(env(safe-area-inset-right,0px) + 26px)
-            calc(env(safe-area-inset-bottom,0px) + 40px) calc(env(safe-area-inset-left,0px) + 26px);
-    opacity:0;visibility:hidden;pointer-events:none;
+  #track{
+    position:absolute; inset:0;
+    display:flex;
+    height:100%;
+    will-change:transform;
+    transition:transform 950ms cubic-bezier(0.76, 0, 0.17, 1);
   }
-  .beat .inner{width:100%;max-width:620px;}
-  .beat.on{opacity:1;visibility:visible;animation:beatIn 900ms cubic-bezier(.22,.61,.2,1) both;}
-  .beat.out{opacity:0;visibility:visible;animation:beatOut 650ms cubic-bezier(.5,0,.75,.4) both;}
-  @keyframes beatIn{from{opacity:0;transform:scale(.985) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
-  @keyframes beatOut{from{opacity:1;transform:scale(1);}to{opacity:0;transform:scale(1.015) translateY(-12px);}}
+  .panel{
+    width:100vw; height:100%;
+    flex:0 0 100vw;
+    display:flex; align-items:center; justify-content:center;
+    padding:calc(env(safe-area-inset-top, 0px) + 24px) calc(env(safe-area-inset-right, 0px) + 28px) calc(env(safe-area-inset-bottom, 0px) + 64px) calc(env(safe-area-inset-left, 0px) + 28px);
+  }
+  .inner{ width:100%; max-width:640px; }
 
-  /* every choreographed element hides until its beat is .on */
-  .fx{opacity:0;}
-  .on .fx{animation-fill-mode:both;animation-delay:var(--d,0ms);}
-
-  @keyframes rise{
-    0%{opacity:0;transform:translateY(26px);}
-    100%{opacity:1;transform:translateY(0);}
-  }
-  @keyframes settle{
-    0%{opacity:0;transform:translateY(30px) scale(.985);}
-    62%{opacity:1;transform:translateY(-4px) scale(1.004);}
-    100%{opacity:1;transform:translateY(0) scale(1);}
-  }
-  @keyframes soft{
-    from{opacity:0;}to{opacity:1;}
-  }
-  @keyframes wordUp{
-    0%{opacity:0;transform:translateY(.55em);}
-    100%{opacity:1;transform:translateY(0);}
-  }
-  .on .fx.rise{animation-name:rise;animation-duration:900ms;animation-timing-function:cubic-bezier(.19,.7,.22,1);}
-  .on .fx.soft{animation-name:soft;animation-duration:1100ms;animation-timing-function:ease-out;}
-  .on .fx.settle{animation-name:settle;animation-duration:820ms;animation-timing-function:cubic-bezier(.2,.75,.25,1);}
-
-  /* ---------- type ---------- */
   .label{
     font-family:var(--sans);
-    font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;
-    color:var(--muted);font-weight:600;
-    margin-bottom:26px;
+    font-size:15px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--faint);
+    margin-bottom:1.4em;
+    font-weight:500;
   }
-  .label .dot{color:var(--accent);}
-  .headline{
-    font-family:var(--serif);
-    font-size:clamp(30px,7.6vw,44px);
-    line-height:1.18;font-weight:600;letter-spacing:-.012em;
-    text-wrap:balance;
+  h1, .h1{
+    font-size:clamp(2.4rem, 9.5vw, 4.2rem);
+    font-weight:400;
+    line-height:1.12;
+    letter-spacing:-0.01em;
   }
-  .body{
-    font-size:clamp(16px,4.3vw,19px);
-    line-height:1.55;color:var(--ink-soft);
-    text-wrap:pretty;
+  .big{
+    font-size:clamp(1.7rem, 6.8vw, 2.9rem);
+    font-weight:400;
+    line-height:1.28;
+  }
+  .mid{
+    font-size:clamp(1.35rem, 5.2vw, 2.1rem);
+    line-height:1.35;
+  }
+  .dim{ color:var(--dim); }
+  .gap{ margin-top:0.55em; }
+  .gap2{ margin-top:1.1em; }
+  .src{
+    font-family:var(--sans);
+    font-size:15px;
+    letter-spacing:0.12em;
+    color:var(--faint);
+    margin-top:2em;
   }
 
-  /* word-by-word */
-  .w{display:inline-block;opacity:0;}
-  .on .w{animation:wordUp 720ms cubic-bezier(.19,.7,.22,1) both;animation-delay:var(--d,0ms);}
-
-  /* =============== BEAT 1 =============== */
-  #b1 .headline{font-size:clamp(32px,8.4vw,50px);}
-  #b1 .line2{margin-top:22px;color:var(--accent);}
-
-  /* =============== BEAT 2 =============== */
-  #b2 .quote{
-    font-family:var(--serif);font-style:italic;font-weight:600;
-    font-size:clamp(33px,8.6vw,54px);line-height:1.22;letter-spacing:-.012em;
-    margin-bottom:30px;
+  /* reveals */
+  .reveal{
+    opacity:0;
+    transform:translate3d(0, 26px, 0);
+    transition:opacity .7s cubic-bezier(0.2,0.7,0.2,1), transform .8s cubic-bezier(0.19, 0.9, 0.26, 1.08);
+    will-change:transform, opacity;
   }
-  .circWrap{position:relative;display:inline-block;font-style:italic;}
+  .panel.active .reveal.in{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+  .panel.leaving .reveal{
+    opacity:0 !important;
+    transform:translate3d(-18px, 0, 0) !important;
+    transition:opacity .45s ease, transform .45s ease;
+  }
+
+  /* P3 circled word */
+  .circWrap{ position:relative; display:inline-block; white-space:nowrap; }
   .circWrap svg{
-    position:absolute;left:-9%;top:-26%;width:118%;height:158%;
-    overflow:visible;pointer-events:none;
+    position:absolute;
+    left:-14%; top:-38%;
+    width:128%; height:176%;
+    overflow:visible;
+    pointer-events:none;
   }
   .circWrap path{
-    fill:none;stroke:var(--accent);stroke-width:4.5;
+    fill:none;
+    stroke:var(--ink);
+    stroke-width:2.6;
     stroke-linecap:round;
-    stroke-dasharray:1;stroke-dashoffset:1;
-    opacity:.9;
+    stroke-dasharray:600;
+    stroke-dashoffset:600;
   }
-  .on .circWrap path{animation:inkDraw 1500ms cubic-bezier(.4,.05,.3,1) both;animation-delay:3300ms;}
-  @keyframes inkDraw{from{stroke-dashoffset:1;}to{stroke-dashoffset:0;}}
-  #b2 .body{margin-bottom:22px;max-width:34em;}
-  #b2 .src{font-size:15px;letter-spacing:.1em;color:var(--muted);text-transform:lowercase;}
-  #b2 .src::before{content:"";display:inline-block;width:26px;height:1px;background:var(--hairline);vertical-align:middle;margin-right:10px;}
+  .panel.active .circWrap path.on{
+    stroke-dashoffset:0;
+    transition:stroke-dashoffset 1.05s cubic-bezier(0.5, 0, 0.3, 1);
+  }
 
-  /* =============== BEAT 3 =============== */
-  #b3 .roles{list-style:none;margin:2px 0 26px;}
-  #b3 .roles li{
-    display:flex;justify-content:space-between;align-items:baseline;gap:16px;
-    padding:13px 2px;
-    border-bottom:1px solid var(--hairline);
-    will-change:transform,opacity;
+  /* P6 figures */
+  .figs .fig{ margin-bottom:0.9em; }
+  .figs .num{
+    font-size:clamp(2.6rem, 10vw, 4.4rem);
+    line-height:1.05;
+    font-variant-numeric:tabular-nums;
   }
-  #b3 .roles li:first-child{border-top:1px solid var(--hairline);}
-  #b3 .role{font-family:var(--serif);font-size:clamp(18px,5vw,22px);font-weight:600;letter-spacing:-.008em;}
-  #b3 .sub{font-size:16px;color:var(--muted);white-space:nowrap;}
-  #b3 .sum{max-width:30em;}
-  #b3 .sum strong{color:var(--ink);font-weight:600;}
+  .figs .cap{
+    font-family:var(--sans);
+    font-size:16px;
+    letter-spacing:0.06em;
+    color:var(--dim);
+    margin-top:0.25em;
+  }
 
-  /* =============== BEAT 4 =============== */
-  #b4 .inner{text-align:center;}
-  #b4 .web{width:min(64vw,270px);height:auto;margin:6px auto 22px;display:block;}
-  #b4 .spoke{
-    stroke:var(--accent-soft);stroke-width:2.5;stroke-linecap:round;fill:none;
-    stroke-dasharray:1;stroke-dashoffset:1;
+  /* P7 */
+  .invites{
+    font-size:clamp(1.8rem, 7vw, 3rem);
+    line-height:1.2;
   }
-  .on #b4 .spoke,#b4.on .spoke{animation:inkDraw 750ms cubic-bezier(.35,.1,.3,1) both;animation-delay:var(--d);}
-  #b4 .node{fill:var(--ink);opacity:0;}
-  #b4.on .node{animation:soft 500ms ease-out both;animation-delay:var(--d);}
-  #b4 .void{
-    fill:none;stroke:var(--accent);stroke-width:2.5;
-    stroke-dasharray:7 9;stroke-linecap:round;
-    transform-box:fill-box;transform-origin:center;
+  .unanswered{
+    font-size:clamp(2.7rem, 11vw, 4.8rem);
+    font-weight:600;
+    line-height:1.1;
+    margin-top:0.5em;
+    letter-spacing:-0.01em;
+  }
+
+  /* P9 list */
+  .roles{ list-style:none; }
+  .roles li{
+    font-size:clamp(1.25rem, 5vw, 1.75rem);
+    line-height:1.3;
+    padding:0.34em 0;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .roles li:last-child{
+    border-bottom:none;
+    font-weight:600;
+  }
+
+  /* P11 + P13 svg scenes */
+  .scene{ display:block; width:min(74vw, 340px); margin:1.6em auto 0; overflow:visible; }
+  .scene .wire{
+    fill:none; stroke:rgba(244,244,242,0.55); stroke-width:1.6; stroke-linecap:round;
+    stroke-dasharray:100; stroke-dashoffset:100;
+  }
+  .panel.active .scene .wire.on{
+    stroke-dashoffset:0;
+    transition:stroke-dashoffset .8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .hole{
+    fill:none; stroke:rgba(244,244,242,0.6); stroke-width:1.8;
+    stroke-dasharray:6 7;
     opacity:0;
   }
-  #b4.on .void{animation:voidIn 800ms ease-out both, voidPulse 2600ms ease-in-out 5600ms infinite;animation-delay:4800ms,5600ms;}
-  @keyframes voidIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
-  @keyframes voidPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.1);opacity:.55;}}
-  #b4 .headline{font-size:clamp(27px,7vw,40px);}
-  #b4 .body{margin-top:18px;font-style:italic;font-family:var(--serif);font-size:clamp(17px,4.6vw,21px);}
+  .panel.active .hole.on{
+    opacity:1;
+    animation:pulse 1.6s ease-in-out infinite;
+    transition:opacity .6s ease;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:0.35; }
+    50%{ opacity:0.9; }
+  }
 
-  /* =============== BEAT 5 =============== */
-  #b5 .inner{text-align:center;}
-  #b5 .pathViz{position:relative;width:100%;max-width:520px;margin:4px auto 8px;}
-  #b5 svg{width:100%;height:auto;display:block;overflow:visible;}
-  #b5 .flow{
-    stroke:var(--accent);stroke-width:3;fill:none;stroke-linecap:round;
-    stroke-dasharray:1;stroke-dashoffset:1;
+  /* P13 path line */
+  .pathline{ display:block; width:min(84vw, 520px); margin:1.8em auto 0.4em; overflow:visible; }
+  .pathline .rail{
+    fill:none; stroke:var(--ink); stroke-width:2.4; stroke-linecap:round;
+    stroke-dasharray:100; stroke-dashoffset:100;
   }
-  #b5.on .flow{animation:inkDraw 3400ms cubic-bezier(.45,.05,.35,1) both;animation-delay:1300ms;}
-  #b5 .spark{opacity:0;will-change:transform;}
-  #b5.on .spark{animation:sparkRun 3400ms cubic-bezier(.45,.05,.35,1) 1300ms both;}
-  @keyframes sparkRun{
-    0%{opacity:0;transform:translateX(0px);}
-    6%{opacity:1;}
-    92%{opacity:1;}
-    100%{opacity:0;transform:translateX(304px);}
+  .panel.active .pathline .rail.on{
+    stroke-dashoffset:0;
+    transition:stroke-dashoffset 1.7s cubic-bezier(0.55, 0, 0.3, 1);
   }
-  #b5 .stop{fill:var(--paper);stroke:var(--accent-soft);stroke-width:2;opacity:0;}
-  #b5.on .stop{animation:soft 400ms ease-out both;animation-delay:var(--d);}
-  #b5 .fill{
-    fill:var(--accent);opacity:0;
-    transform-box:fill-box;transform-origin:center;
+  .pathline .node{ fill:#000; stroke:rgba(244,244,242,0.5); stroke-width:1.6; transition:fill .5s ease, stroke .5s ease; }
+  .pathline .node.lit{ fill:var(--ink); stroke:var(--ink); }
+  .pathline .spark{
+    fill:var(--ink); opacity:0;
   }
-  #b5.on .fill{animation:fillIn 700ms cubic-bezier(.2,.8,.3,1.25) both;animation-delay:4550ms;}
-  @keyframes fillIn{from{opacity:0;transform:scale(.2);}to{opacity:1;transform:scale(1);}}
-  #b5 .stages{
-    display:flex;justify-content:space-between;gap:10px;
-    margin:0 auto 30px;max-width:520px;
+  .stages{
+    display:flex; justify-content:space-between;
+    width:min(84vw, 520px); margin:0 auto;
+    font-family:var(--sans); font-size:15px; letter-spacing:0.05em;
+    color:var(--faint);
   }
-  #b5 .stages span{
-    flex:1;font-size:16px;color:var(--ink-soft);letter-spacing:.02em;opacity:.28;
-  }
-  #b5 .stages span:first-child{text-align:left;}
-  #b5 .stages span:nth-child(2){text-align:center;}
-  #b5 .stages span:last-child{text-align:right;}
-  #b5.on .stages span{animation:lightUp 700ms ease-out both;animation-delay:var(--d);}
-  @keyframes lightUp{from{opacity:.28;}to{opacity:1;}}
-  #b5 .headline{font-size:clamp(26px,6.8vw,38px);max-width:15em;margin:0 auto;}
+  .stages span{ transition:color .5s ease; flex:1; text-align:center; }
+  .stages span:first-child{ text-align:left; }
+  .stages span:last-child{ text-align:right; }
+  .stages span.lit{ color:var(--ink); }
 
-  /* =============== BEAT 6 =============== */
-  #b6 .q{
-    font-family:var(--serif);
-    font-size:clamp(21px,5.6vw,29px);line-height:1.4;font-weight:600;letter-spacing:-.008em;
-    margin-bottom:26px;text-wrap:pretty;
+  /* P14 questions */
+  .q{
+    font-size:clamp(1.35rem, 5.4vw, 2rem);
+    line-height:1.42;
+    margin-bottom:1.1em;
   }
-  #b6 .q .n{color:var(--accent);margin-right:.5em;}
-  #b6 .reply{
-    font-size:clamp(16px,4.4vw,19px);color:var(--ink-soft);
-    margin:10px 0 34px;
+  .qn{
+    font-family:var(--sans);
+    font-size:0.72em;
+    color:var(--faint);
+    margin-right:0.5em;
+    font-variant-numeric:tabular-nums;
   }
-  #b6 .sig{
-    font-family:var(--serif);font-style:italic;
-    font-size:clamp(22px,6vw,30px);color:var(--ink);
-  }
-  #b6 .replayRow{margin-top:44px;}
-  #b6 .replay{
-    pointer-events:auto;cursor:pointer;
-    font-family:var(--sans);font-size:14px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
-    color:var(--muted);background:none;border:1px solid var(--hairline);
-    border-radius:999px;padding:11px 26px;
-    transition:opacity .3s ease;
-  }
-  .beat.on #b6-inner{pointer-events:auto;}
-  #b6.on{pointer-events:auto;}
-  .replay:active{opacity:.55;}
 
-  /* ---------- reduced motion ---------- */
+  /* P15 */
+  .sig{
+    font-size:clamp(1.5rem, 6vw, 2.2rem);
+    font-style:italic;
+    margin-top:1.2em;
+    color:var(--dim);
+  }
+  #replay{
+    margin-top:3em;
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--sans); font-size:15px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--dim);
+    background:none; border:1px solid rgba(255,255,255,0.28);
+    border-radius:999px;
+    padding:12px 22px;
+    cursor:pointer;
+    transition:color .3s ease, border-color .3s ease;
+  }
+  #replay:hover{ color:var(--ink); border-color:rgba(255,255,255,0.6); }
+  #replay svg{ width:15px; height:15px; }
+
+  /* progress */
+  #progress{
+    position:fixed;
+    left:50%; transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 22px);
+    display:flex; gap:6px;
+    z-index:10;
+    pointer-events:none;
+  }
+  #progress i{
+    display:block; width:11px; height:2px;
+    background:rgba(255,255,255,0.16);
+    transition:background .5s ease;
+  }
+  #progress i.past{ background:rgba(255,255,255,0.45); }
+  #progress i.now{ background:var(--ink); }
+
+  /* reduced motion */
   @media (prefers-reduced-motion: reduce){
-    .glow.a,.glow.b{animation:none;}
-    .beat.on{animation-name:soft;animation-duration:600ms;}
-    .beat.out{animation-name:beatFade;animation-duration:400ms;}
-    @keyframes beatFade{from{opacity:1;}to{opacity:0;}}
-    .on .fx.rise,.on .fx.settle{animation-name:soft;animation-duration:600ms;}
-    .on .w{animation-name:soft;animation-duration:500ms;}
-    .on .circWrap path,#b4.on .spoke,#b5.on .flow{animation-name:strokeShow;animation-duration:500ms;}
-    @keyframes strokeShow{from{opacity:0;stroke-dashoffset:0;}to{opacity:1;stroke-dashoffset:0;}}
-    #b4.on .void{animation:soft 500ms ease-out both;animation-delay:4800ms;}
-    #b5.on .spark{animation:none;}
-    #b5.on .fill{animation-name:soft;animation-duration:500ms;}
+    #track{ transition:none; }
+    #ambient{ animation:none; }
+    .reveal{ transform:none; transition:opacity .6s ease; }
+    .panel.leaving .reveal{ transform:none !important; }
+    .circWrap path, .scene .wire, .pathline .rail{
+      stroke-dashoffset:0 !important;
+      opacity:0;
+    }
+    .panel.active .circWrap path.on,
+    .panel.active .scene .wire.on,
+    .panel.active .pathline .rail.on{
+      opacity:1; transition:opacity .7s ease;
+    }
+    .panel.active .hole.on{ animation:none; opacity:0.7; }
   }
 
-  /* ---------- desktop refinements ---------- */
-  @media (min-width:760px){
-    .beat{padding-top:80px;}
-    #b3 .roles li{padding:15px 4px;}
+  @media (min-width: 700px){
+    .inner{ max-width:720px; }
+    .label{ font-size:16px; }
   }
 </style>
 </head>
 <body>
+<div id="stage">
+  <div id="ambient"></div>
+  <div id="track">
 
-<div class="ambient"><div class="glow a"></div><div class="glow b"></div></div>
-<div class="vignette"></div>
+    <!-- P1 -->
+    <section class="panel" id="p1">
+      <div class="inner">
+        <div class="label reveal" data-d="150">Case file: Upscend</div>
+        <h1 class="reveal" data-d="450">Abdullah.</h1>
+        <p class="big dim gap reveal" data-d="1250">I didn&rsquo;t write you a proposal.</p>
+      </div>
+    </section>
 
-<div class="progress" id="progress">
-  <div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div>
-  <div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div>
-</div>
+    <!-- P2 -->
+    <section class="panel" id="p2">
+      <div class="inner">
+        <p class="big reveal" data-d="350">I studied how Upscend sells first.</p>
+      </div>
+    </section>
 
-<div class="stage" id="stage">
+    <!-- P3 -->
+    <section class="panel" id="p3">
+      <div class="inner">
+        <div class="label reveal" data-d="150">Your homepage</div>
+        <h2 class="big reveal" data-d="500">&ldquo;The LMS that <span class="circWrap">guarantees<svg viewBox="0 0 200 70" aria-hidden="true"><path class="ring" pathLength="600" d="M 14,40 C 8,16 58,5 102,7 C 152,9 196,15 194,36 C 192,58 146,67 98,65 C 50,63 12,57 14,38 C 15,27 36,20 62,16"/></svg></span> learning.&rdquo;</h2>
+      </div>
+    </section>
 
-  <!-- ============ BEAT 1 · the hook ============ -->
-  <section class="beat" id="b1">
-    <div class="inner">
-      <div class="label fx soft" style="--d:300ms">Case <span class="dot">·</span> Upscend</div>
-      <h1 class="headline fx rise" style="--d:1000ms">Abdullah — I didn&rsquo;t write you a proposal.</h1>
-      <h1 class="headline line2">
-        <span class="w" style="--d:5300ms">I</span>
-        <span class="w" style="--d:5480ms">studied</span>
-        <span class="w" style="--d:5660ms">how</span>
-        <span class="w" style="--d:5840ms">Upscend</span>
-        <span class="w" style="--d:6060ms">sells</span>
-        <span class="w" style="--d:6280ms">first.</span>
-      </h1>
-    </div>
-  </section>
+    <!-- P4 -->
+    <section class="panel" id="p4">
+      <div class="inner">
+        <p class="big reveal" data-d="350">&ldquo;Stop measuring completion rates. Start measuring mastery.&rdquo;</p>
+        <div class="src reveal" data-d="1400">upscend.com</div>
+      </div>
+    </section>
 
-  <!-- ============ BEAT 2 · their promise ============ -->
-  <section class="beat" id="b2">
-    <div class="inner">
-      <div class="label fx soft" style="--d:300ms">Your homepage, word for word</div>
-      <p class="quote">
-        <span class="w" style="--d:900ms">&ldquo;The</span>
-        <span class="w" style="--d:1200ms">LMS</span>
-        <span class="w" style="--d:1500ms">that</span>
-        <span class="w circWrap" style="--d:1850ms">guarantees<svg viewBox="0 0 200 74" preserveAspectRatio="none" aria-hidden="true">
-          <path pathLength="1" d="M28 44 C 18 20, 92 6, 148 12 C 187 17, 199 33, 190 47 C 178 66, 96 72, 48 64 C 16 58, 6 44, 20 30 C 26 24, 38 19, 52 16"/>
-        </svg></span>
-        <span class="w" style="--d:2200ms">learning.&rdquo;</span>
-      </p>
-      <p class="body fx rise" style="--d:6200ms">A guarantee is a bold promise. It&rsquo;s also a considered purchase — nobody buys guaranteed learning on impulse.</p>
-      <p class="src fx soft" style="--d:7400ms">upscend.com</p>
-    </div>
-  </section>
+    <!-- P5 -->
+    <section class="panel" id="p5">
+      <div class="inner">
+        <div class="label reveal" data-d="150">Inside your product</div>
+        <p class="big reveal" data-d="500">Matar. An AI concierge that tutors every learner.</p>
+      </div>
+    </section>
 
-  <!-- ============ BEAT 3 · what I found ============ -->
-  <section class="beat" id="b3">
-    <div class="inner">
-      <div class="label fx soft" style="--d:300ms">Who you&rsquo;ve hired</div>
-      <ul class="roles">
-        <li class="fx settle" style="--d:1100ms"><span class="role">A closer</span><span class="sub">one round of deals</span></li>
-        <li class="fx settle" style="--d:2500ms"><span class="role">Demo team</span><span class="sub">another round</span></li>
-        <li class="fx settle" style="--d:3900ms"><span class="role">Email personalization</span><span class="sub">outreach</span></li>
-        <li class="fx settle" style="--d:5300ms"><span class="role">Audience research</span><span class="sub">who to target</span></li>
-        <li class="fx settle" style="--d:6700ms"><span class="role">Marketing consultant</span><span class="sub">open right now</span></li>
-        <li class="fx settle" style="--d:8100ms"><span class="role">Sales consultant</span><span class="sub">this post</span></li>
-      </ul>
-      <p class="body sum fx rise" style="--d:11600ms">Six roles. All one machine: <strong>turning a stranger into a booked, qualified demo.</strong></p>
-    </div>
-  </section>
+    <!-- P6 -->
+    <section class="panel" id="p6">
+      <div class="inner figs">
+        <div class="label reveal" data-d="150">Your Upwork profile</div>
+        <div class="fig reveal" data-d="500">
+          <div class="num"><span data-count="294">0</span></div>
+          <div class="cap">jobs posted.</div>
+        </div>
+        <div class="fig reveal" data-d="1250">
+          <div class="num"><span data-count="74">0</span></div>
+          <div class="cap">hires.</div>
+        </div>
+        <div class="fig reveal" data-d="2000">
+          <div class="mid dim">Since November 2023.</div>
+        </div>
+      </div>
+    </section>
 
-  <!-- ============ BEAT 4 · the pattern ============ -->
-  <section class="beat" id="b4">
-    <div class="inner">
-      <div class="label fx soft" style="--d:300ms">What I think I&rsquo;m seeing</div>
-      <svg class="web" viewBox="0 0 320 340" aria-hidden="true">
-        <!-- outer nodes -->
-        <circle class="node" style="--d:1000ms" cx="160" cy="40"    r="5"/>
-        <circle class="node" style="--d:1550ms" cx="272.6" cy="105" r="5"/>
-        <circle class="node" style="--d:2100ms" cx="272.6" cy="235" r="5"/>
-        <circle class="node" style="--d:2650ms" cx="160" cy="300"   r="5"/>
-        <circle class="node" style="--d:3200ms" cx="47.4" cy="235"  r="5"/>
-        <circle class="node" style="--d:3750ms" cx="47.4" cy="105"  r="5"/>
-        <!-- spokes: draw inward, stop short of the center -->
-        <path class="spoke" style="--d:1150ms" pathLength="1" d="M160 48 L160 108"/>
-        <path class="spoke" style="--d:1700ms" pathLength="1" d="M265.7 109 L214 139"/>
-        <path class="spoke" style="--d:2250ms" pathLength="1" d="M265.7 231 L214 201"/>
-        <path class="spoke" style="--d:2800ms" pathLength="1" d="M160 292 L160 232"/>
-        <path class="spoke" style="--d:3350ms" pathLength="1" d="M54.3 231 L106 201"/>
-        <path class="spoke" style="--d:3900ms" pathLength="1" d="M54.3 109 L106 139"/>
-        <!-- the empty center -->
-        <circle class="void" cx="160" cy="170" r="38"/>
-      </svg>
-      <h2 class="headline fx rise" style="--d:6600ms">Every piece hired separately. No one owns the number.</h2>
-      <p class="body fx soft" style="--d:10600ms">Tell me I&rsquo;m wrong — I&rsquo;d rather be corrected than polite.</p>
-    </div>
-  </section>
+    <!-- P7 -->
+    <section class="panel" id="p7">
+      <div class="inner">
+        <div class="label reveal" data-d="150">On this post</div>
+        <p class="invites reveal" data-d="500"><span data-count="16">0</span> invites sent.</p>
+        <p class="unanswered reveal" data-d="2100"><span data-count="15" data-slow="1">0</span> unanswered.</p>
+      </div>
+    </section>
 
-  <!-- ============ BEAT 5 · the gap ============ -->
-  <section class="beat" id="b5">
-    <div class="inner">
-      <div class="label fx soft" style="--d:300ms">Where I&rsquo;d come in</div>
-      <div class="pathViz">
-        <svg viewBox="0 0 340 96" aria-hidden="true">
-          <circle class="stop" style="--d:1300ms" cx="18"  cy="48" r="6"/>
-          <circle class="stop" style="--d:2600ms" cx="170" cy="48" r="6"/>
-          <circle class="stop" style="--d:3900ms" cx="322" cy="48" r="6"/>
-          <path class="flow" pathLength="1" d="M18 48 C 90 41, 250 55, 322 48"/>
-          <circle class="fill" cx="322" cy="48" r="12"/>
-          <g class="spark">
-            <circle cx="18" cy="46" r="11" fill="rgba(44,74,115,.18)"/>
-            <circle cx="18" cy="46" r="4.5" fill="#2c4a73"/>
-          </g>
+    <!-- P8 -->
+    <section class="panel" id="p8">
+      <div class="inner">
+        <p class="big reveal" data-d="350">So I looked at who you hire to sell.</p>
+      </div>
+    </section>
+
+    <!-- P9 -->
+    <section class="panel" id="p9">
+      <div class="inner">
+        <div class="label reveal" data-d="150">The roles</div>
+        <ul class="roles">
+          <li class="reveal" data-d="500">A closer.</li>
+          <li class="reveal" data-d="990">A demo team.</li>
+          <li class="reveal" data-d="1480">Email personalization.</li>
+          <li class="reveal" data-d="1970">Audience research.</li>
+          <li class="reveal" data-d="2460">Answer engine optimization.</li>
+          <li class="reveal" data-d="2950">A marketing consultant, open now.</li>
+          <li class="reveal" data-d="3560">A sales consultant. This post.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- P10 -->
+    <section class="panel" id="p10">
+      <div class="inner">
+        <p class="h1 reveal" data-d="350">Seven roles. One machine.</p>
+        <p class="big dim gap reveal" data-d="1300">Stranger to booked demo.</p>
+      </div>
+    </section>
+
+    <!-- P11 -->
+    <section class="panel" id="p11">
+      <div class="inner" style="text-align:center;">
+        <p class="big reveal" data-d="300" style="text-align:left;">Every piece hired separately.</p>
+        <p class="big dim gap reveal" data-d="1000" style="text-align:left;">Nobody owns the number.</p>
+        <svg class="scene reveal" data-d="1600" viewBox="0 0 320 320" aria-hidden="true">
+          <path class="wire w1" pathLength="100" d="M 30,40  L 112,113"/>
+          <path class="wire w2" pathLength="100" d="M 160,16 L 160,96"/>
+          <path class="wire w3" pathLength="100" d="M 290,40 L 208,113"/>
+          <path class="wire w4" pathLength="100" d="M 16,160 L 92,160"/>
+          <path class="wire w5" pathLength="100" d="M 304,160 L 228,160"/>
+          <path class="wire w6" pathLength="100" d="M 46,286 L 118,214"/>
+          <path class="wire w7" pathLength="100" d="M 274,286 L 202,214"/>
+          <circle class="hole" cx="160" cy="160" r="38"/>
         </svg>
       </div>
-      <div class="stages">
-        <span style="--d:1500ms">who to target</span>
-        <span style="--d:2800ms">the message</span>
-        <span style="--d:4100ms">the booked demo</span>
-      </div>
-      <h2 class="headline fx rise" style="--d:5800ms">Not another piece. The whole path — handed to your closers as booked demos.</h2>
-    </div>
-  </section>
+    </section>
 
-  <!-- ============ BEAT 6 · the ask ============ -->
-  <section class="beat" id="b6">
-    <div class="inner" id="b6-inner">
-      <div class="label fx soft" style="--d:300ms">Two questions decide if we talk</div>
-      <p class="q fx rise" style="--d:1300ms"><span class="n">1 —</span>Who owns that number today: one person, or the six?</p>
-      <p class="q fx rise" style="--d:4400ms"><span class="n">2 —</span>Once a demo is booked, who closes — and is that where it actually stalls?</p>
-      <p class="reply fx soft" style="--d:7800ms">Reply right here on Upwork.</p>
-      <p class="sig fx rise" style="--d:9300ms">— Mohamed</p>
-      <div class="replayRow fx soft" style="--d:11000ms">
-        <button class="replay" id="replayBtn" type="button">Replay</button>
+    <!-- P12 -->
+    <section class="panel" id="p12">
+      <div class="inner">
+        <p class="big reveal" data-d="350">Tell me I&rsquo;m wrong. I&rsquo;d rather be corrected than polite.</p>
       </div>
-    </div>
-  </section>
+    </section>
 
+    <!-- P13 -->
+    <section class="panel" id="p13">
+      <div class="inner">
+        <div class="label reveal" data-d="150">Where I&rsquo;d come in</div>
+        <div class="reveal" data-d="500">
+          <svg class="pathline" viewBox="0 0 520 60" aria-hidden="true">
+            <path class="rail" pathLength="100" d="M 14,30 L 506,30"/>
+            <circle class="node n1" cx="40"  cy="30" r="7"/>
+            <circle class="node n2" cx="260" cy="30" r="12"/>
+            <circle class="node n3" cx="480" cy="30" r="7"/>
+            <circle class="spark" cx="0" cy="30" r="4"/>
+          </svg>
+          <div class="stages">
+            <span class="s1">who to target</span>
+            <span class="s2">the message</span>
+            <span class="s3">the booked demo</span>
+          </div>
+        </div>
+        <p class="big gap2 reveal" data-d="3100">Not another piece. The whole path.</p>
+      </div>
+    </section>
+
+    <!-- P14 -->
+    <section class="panel" id="p14">
+      <div class="inner">
+        <div class="label reveal" data-d="150">Two questions</div>
+        <p class="q reveal" data-d="500"><span class="qn">1.</span>Who owns that number today?</p>
+        <p class="q reveal" data-d="1600"><span class="qn">2.</span>Once a demo is booked, who closes, and is that where it stalls?</p>
+      </div>
+    </section>
+
+    <!-- P15 -->
+    <section class="panel" id="p15">
+      <div class="inner">
+        <p class="h1 reveal" data-d="350">Reply right here on Upwork.</p>
+        <p class="sig reveal" data-d="1200">Mohamed</p>
+        <div class="reveal" data-d="2000">
+          <button id="replay" type="button" aria-label="Replay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            Replay
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <div id="vignette"></div>
 </div>
+<div id="progress" aria-hidden="true"></div>
 
 <script>
 (function(){
-  "use strict";
-  var beats = ["b1","b2","b3","b4","b5","b6"].map(function(id){return document.getElementById(id);});
-  var durations = [12000, 15200, 17000, 16000, 14200, Infinity];
-  var segs = Array.prototype.slice.call(document.querySelectorAll(".seg i"));
-  var idx = -1, timer = null, done = false;
+  'use strict';
+  var track = document.getElementById('track');
+  var stage = document.getElementById('stage');
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  var N = panels.length;
+  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function fillSeg(i, dur){
-    var el = segs[i];
-    el.style.transition = "none";
-    el.style.transform = "scaleX(0)";
-    // force reflow, then animate linearly across the beat
-    void el.offsetWidth;
-    el.style.transition = "transform " + dur + "ms linear";
-    el.style.transform = "scaleX(1)";
-  }
-  function snapSeg(i){
-    var el = segs[i];
-    el.style.transition = "none";
-    el.style.transform = "scaleX(1)";
-  }
-  function resetSegs(){
-    segs.forEach(function(el){
-      el.style.transition = "none";
-      el.style.transform = "scaleX(0)";
-    });
-  }
+  /* per-panel dwell in ms, panels 1..14 (last panel holds) */
+  var DUR = [6000, 4500, 6500, 5000, 5000, 6000, 6500, 4500, 8000, 5000, 6500, 5000, 7500, 6500];
 
-  function show(i){
-    if(i === idx) return;
-    if(timer){ clearTimeout(timer); timer = null; }
-    if(idx >= 0){
-      var old = beats[idx];
-      old.classList.remove("on");
-      old.classList.add("out");
-      (function(el){ setTimeout(function(){ el.classList.remove("out"); }, 700); })(old);
-      snapSeg(idx);
+  var idx = -1;
+  var timer = null;
+  var fx = [];
+
+  /* progress */
+  var prog = document.getElementById('progress');
+  var segs = [];
+  for (var i = 0; i < N; i++){
+    var s = document.createElement('i');
+    prog.appendChild(s);
+    segs.push(s);
+  }
+  function paintProgress(){
+    for (var i = 0; i < N; i++){
+      segs[i].className = i < idx ? 'past' : (i === idx ? 'now' : '');
     }
-    idx = i;
-    var b = beats[i];
-    b.classList.remove("out");
-    void b.offsetWidth;           /* restart CSS choreography from zero */
-    b.classList.add("on");
-    var dur = durations[i];
-    if(isFinite(dur)){
-      fillSeg(i, dur);
-      timer = setTimeout(function(){ show(i+1); }, dur);
+  }
+
+  function clearFx(){
+    while (fx.length) clearTimeout(fx.pop());
+  }
+  function later(fn, ms){ fx.push(setTimeout(fn, ms)); }
+
+  function countUp(el, target, dur){
+    if (RM){ el.textContent = target; return; }
+    var t0 = null;
+    function step(t){
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(e * target);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function resetPanel(p){
+    p.classList.remove('active', 'leaving');
+    var rs = p.querySelectorAll('.reveal');
+    for (var i = 0; i < rs.length; i++){
+      rs[i].classList.remove('in');
+      rs[i].style.transitionDelay = '';
+    }
+    var ons = p.querySelectorAll('.on');
+    for (var j = 0; j < ons.length; j++) ons[j].classList.remove('on');
+    var lits = p.querySelectorAll('.lit');
+    for (var k = 0; k < lits.length; k++) lits[k].classList.remove('lit');
+    var counts = p.querySelectorAll('[data-count]');
+    for (var m = 0; m < counts.length; m++) counts[m].textContent = '0';
+  }
+
+  function enterEffects(p){
+    /* staggered reveals */
+    var rs = p.querySelectorAll('.reveal');
+    for (var i = 0; i < rs.length; i++){
+      (function(el){
+        var d = parseInt(el.getAttribute('data-d') || '0', 10);
+        later(function(){ el.classList.add('in'); }, d);
+      })(rs[i]);
+    }
+    /* count-ups */
+    var counts = p.querySelectorAll('[data-count]');
+    for (var c = 0; c < counts.length; c++){
+      (function(el){
+        var host = el.closest('.reveal');
+        var d = host ? parseInt(host.getAttribute('data-d') || '0', 10) : 0;
+        var target = parseInt(el.getAttribute('data-count'), 10);
+        var dur = el.getAttribute('data-slow') ? 1100 : 850;
+        later(function(){ countUp(el, target, dur); }, d + 120);
+      })(counts[c]);
+    }
+    /* panel specific */
+    var id = p.id;
+    if (id === 'p3'){
+      var ring = p.querySelector('.ring');
+      later(function(){ ring.classList.add('on'); }, 1900);
+    }
+    if (id === 'p11'){
+      var wires = p.querySelectorAll('.wire');
+      for (var w = 0; w < wires.length; w++){
+        (function(el, n){
+          later(function(){ el.classList.add('on'); }, 1700 + n * 190);
+        })(wires[w], w);
+      }
+      var hole = p.querySelector('.hole');
+      later(function(){ hole.classList.add('on'); }, 3300);
+    }
+    if (id === 'p13'){
+      var rail = p.querySelector('.rail');
+      later(function(){ rail.classList.add('on'); }, 700);
+      var lightTimes = [900, 1600, 2350];
+      var nodes = ['.n1', '.n2', '.n3'];
+      var labels = ['.s1', '.s2', '.s3'];
+      for (var t = 0; t < 3; t++){
+        (function(n, l, when){
+          later(function(){
+            p.querySelector(n).classList.add('lit');
+            p.querySelector(l).classList.add('lit');
+          }, when);
+        })(nodes[t], labels[t], lightTimes[t]);
+      }
+    }
+  }
+
+  function goTo(n, instant){
+    if (n < 0 || n >= N) return;
+    clearTimeout(timer);
+    clearFx();
+
+    var prev = idx >= 0 ? panels[idx] : null;
+    idx = n;
+    var cur = panels[idx];
+
+    if (prev && prev !== cur){
+      prev.classList.add('leaving');
+      prev.classList.remove('active');
+      (function(pp){
+        setTimeout(function(){ resetPanel(pp); }, 1100);
+      })(prev);
+    }
+
+    function move(){
+      track.style.transform = 'translate3d(' + (-idx * 100) + 'vw, 0, 0)';
+    }
+    if (RM){
+      stage.style.opacity = '0';
+      setTimeout(function(){
+        move();
+        stage.style.opacity = '1';
+      }, instant ? 0 : 280);
     } else {
-      // final beat: fill its tick over the reveal, then rest
-      fillSeg(i, 12000);
-      done = true;
+      move();
+    }
+
+    resetPanel(cur);
+    cur.classList.add('active');
+    /* let the pan begin before content arrives */
+    later(function(){ enterEffects(cur); }, instant ? 60 : 260);
+
+    paintProgress();
+
+    if (idx < N - 1){
+      timer = setTimeout(function(){ goTo(idx + 1); }, DUR[idx]);
     }
   }
 
-  function next(){
-    if(done) return;                     // final beat: taps do nothing
-    if(idx < beats.length - 1) show(idx + 1);
-  }
-
-  function restart(){
-    if(timer){ clearTimeout(timer); timer = null; }
-    done = false;
-    beats.forEach(function(b){ b.classList.remove("on","out"); });
-    resetSegs();
-    idx = -1;
-    // small breath before the film starts again
-    setTimeout(function(){ show(0); }, 350);
-  }
-
-  document.getElementById("stage").addEventListener("click", function(e){
-    if(e.target && e.target.id === "replayBtn"){ restart(); return; }
-    next();
+  /* tap advances, never required */
+  stage.addEventListener('click', function(e){
+    if (e.target.closest('#replay')) return;
+    if (idx < N - 1) goTo(idx + 1);
   });
-  document.addEventListener("keydown", function(e){
-    if(e.key === "ArrowRight" || e.key === " "){ e.preventDefault(); next(); }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === ' '){
+      if (idx < N - 1) goTo(idx + 1);
+    }
+    if (e.key === 'ArrowLeft' && idx > 0) goTo(idx - 1);
   });
 
-  // begin
-  setTimeout(function(){ show(0); }, 450);
+  document.getElementById('replay').addEventListener('click', function(e){
+    e.stopPropagation();
+    goTo(0);
+  });
+
+  goTo(0, true);
 })();
 </script>
 </body>
